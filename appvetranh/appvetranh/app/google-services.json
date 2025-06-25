@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "347443636007",
+    "project_id": "ve-tranh",
+    "storage_bucket": "ve-tranh.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:347443636007:android:828991e610c76f6410eb02",
+        "android_client_info": {
+          "package_name": "com.example.appvetranh"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "347443636007-tqb0n9ur4aesut1b0rj83rat716o0ndd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.appvetranh",
+            "certificate_hash": "276efcfb9bd392c52e7676bf090fe104f049fbd8"
+          }
+        },
+        {
+          "client_id": "347443636007-8br474g8cv1g91mt29q2mhb01l2ppc0i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAa6xo_-Lb2xLioxT-0wlNXR2iN4PPU6Z0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "347443636007-8br474g8cv1g91mt29q2mhb01l2ppc0i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
