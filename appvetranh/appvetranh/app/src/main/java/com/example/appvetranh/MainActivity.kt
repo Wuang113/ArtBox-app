@@ -1,15 +1,13 @@
-// MainActivity.kt
 package com.example.appvetranh
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,9 +20,19 @@ class MainActivity : ComponentActivity() {
                 composable("home") { HomeScreen(navController) }
                 composable("login") { LoginScreen(navController) }
                 composable("register") { RegisterScreen(navController) }
-            }
-                //màn hình vẽ
-//            DrawingScreen()
+                composable("forgot_password") { ForgotPasswordScreen(navController) }
+                composable("draw") { DrawingScreen(navController) }
+                composable(
+                    "gallery?path={path}",
+                    arguments = listOf(navArgument("path") {
+                        nullable = true
+                        defaultValue = null
+                    })
+                ) {
+                    val path = it.arguments?.getString("path")
+                    GalleryScreen(navController = navController)
+                }
+           }
         }
     }
 }

@@ -107,7 +107,11 @@ fun RegisterScreen(navController: NavController) {
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     Toast.makeText(context, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
-                                    navController.popBackStack() // quay lại Login
+
+                                    // Sao khi đăng nhập thành công nó sẽ chuyển sang Gallery
+                                    navController.navigate("gallery") {
+                                        popUpTo("register") { inclusive = true }
+                                    }
                                 } else {
                                     Toast.makeText(context, "Lỗi: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                                 }

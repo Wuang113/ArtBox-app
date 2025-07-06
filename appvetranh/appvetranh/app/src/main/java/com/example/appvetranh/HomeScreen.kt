@@ -1,4 +1,3 @@
-// SplashAndHomeScreen.kt
 package com.example.appvetranh
 
 import androidx.compose.foundation.Image

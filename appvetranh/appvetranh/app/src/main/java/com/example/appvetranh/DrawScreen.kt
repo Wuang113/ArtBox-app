@@ -1,5 +1,9 @@
 package com.example.appvetranh
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color as AwtColor
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,19 +17,51 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import androidx.navigation.NavController
+import androidx.compose.ui.res.painterResource
+import java.io.File
+import java.io.FileOutputStream
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DrawingScreen() {
-    Column(modifier = Modifier.fillMaxSize()) {
+fun DrawingScreen(navController: NavController) {
+    val context = LocalContext.current
 
+    // 🔧 Tạo bitmap trắng
+    fun generateFakeDrawing(): Bitmap {
+        val width = 800
+        val height = 800
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawColor(AwtColor.WHITE) // vẽ nền trắng
+        return bitmap
+    }
+
+    // 💾 Lưu ảnh và điều hướng
+    fun saveAndNavigate(bitmap: Bitmap) {
+        val fileName = "drawing_${System.currentTimeMillis()}.png"
+        val file = File(context.filesDir, fileName)
+        val outputStream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+        outputStream.flush()
+        outputStream.close()
+
+        navController.navigate("gallery?path=${Uri.encode(file.absolutePath)}")
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(WindowInsets.statusBars.asPaddingValues()) // ✅ Tránh status bar / notch
+    ) {
         // ----- Top Bar (Setting) -----
-        // --- Custom Top Bar (không dùng TopAppBar) ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -50,17 +86,17 @@ fun DrawingScreen() {
             }
         }
 
-
         // ----- Main Content -----
         Row(modifier = Modifier.weight(1f)) {
-
             // Tools + Layer Panel
             Column(
                 modifier = Modifier
                     .width(110.dp)
                     .fillMaxHeight()
             ) {
-                // ----- Layers ở trên -----
+                Spacer(modifier = Modifier.height(16.dp)) // ✅ đẩy khung xuống một chút
+
+                // ----- Layers -----
                 Column(
                     modifier = Modifier
                         .padding(6.dp)
@@ -87,9 +123,9 @@ fun DrawingScreen() {
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f)) // 👈 đẩy Tools xuống dưới cùng
+                Spacer(modifier = Modifier.weight(1f))
 
-                // ----- Tools ở dưới cùng -----
+                // ----- Tools -----
                 Box(
                     modifier = Modifier
                         .background(Color(0xFFF0F0F0))
@@ -125,9 +161,7 @@ fun DrawingScreen() {
                 }
             }
 
-
-
-            // Drawing Canvas
+            // Drawing Area (giữ nguyên)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -148,13 +182,19 @@ fun DrawingScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Default.Image, contentDescription = "Gallery")
+
             Image(
                 painter = painterResource(id = R.drawable.logo_2),
                 contentDescription = "Logo",
                 modifier = Modifier.size(40.dp)
             )
-            Icon(Icons.Default.Download, contentDescription = "Download")
+
+            IconButton(onClick = {
+                val bitmap = generateFakeDrawing()
+                saveAndNavigate(bitmap)
+            }) {
+                Icon(Icons.Default.Download, contentDescription = "Download")
+            }
         }
     }
 }
-

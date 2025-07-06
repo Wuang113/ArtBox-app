@@ -1,5 +1,6 @@
 package com.example.appvetranh
 
+
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,7 +53,11 @@ fun LoginScreen(navController: NavController) {
             auth.signInWithCredential(credential).addOnCompleteListener { authTask ->
                 if (authTask.isSuccessful) {
                     Toast.makeText(context, "Đăng nhập Google thành công", Toast.LENGTH_SHORT).show()
-                    // navController.navigate("home")
+
+                    //Sao khi đăng nhập thành công nó sẽ chuyển sang Gallery
+                    navController.navigate("Gallery") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 } else {
                     Toast.makeText(context, "Lỗi: ${authTask.exception?.message}", Toast.LENGTH_LONG).show()
                 }
@@ -111,7 +116,9 @@ fun LoginScreen(navController: NavController) {
             )
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = { /* TODO */ }) {
+                TextButton(onClick = {
+                    navController.navigate("forgot_password")
+                }) {
                     Text("Quên mật khẩu?")
                 }
             }
@@ -126,7 +133,9 @@ fun LoginScreen(navController: NavController) {
                             loading = false
                             if (task.isSuccessful) {
                                 Toast.makeText(context, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
-                                // navController.navigate("home")
+                                navController.navigate("draw") {
+                                    popUpTo("login") { inclusive = true }
+                                }
                             } else {
                                 Toast.makeText(context, "Lỗi: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                             }
@@ -155,7 +164,7 @@ fun LoginScreen(navController: NavController) {
                 Text("Chưa có tài khoản?")
                 TextButton(
                     onClick = {
-                        // navController.navigate("register")
+                        navController.navigate("register")
                     },
                     contentPadding = PaddingValues(0.dp)
                 ) {
