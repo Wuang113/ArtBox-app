@@ -4,7 +4,14 @@ import android.graphics.Bitmap
 import java.util.*
 import kotlin.math.abs
 
-fun floodFill(bitmap: Bitmap, x: Int, y: Int, targetColor: Int, replacementColor: Int, tolerance: Int = 10) {
+fun floodFill(
+    bitmap: Bitmap,
+    x: Int,
+    y: Int,
+    targetColor: Int,
+    replacementColor: Int,
+    tolerance: Int = 10
+) {
     if (targetColor == replacementColor) return
 
     val width = bitmap.width
@@ -24,21 +31,26 @@ fun floodFill(bitmap: Bitmap, x: Int, y: Int, targetColor: Int, replacementColor
                 abs(b1 - b2) <= tolerance)
     }
 
+    val realTargetColor = pixels[y * width + x] // ✅ đảm bảo đúng màu tại vị trí bấm
+
     val queue: ArrayDeque<Pair<Int, Int>> = ArrayDeque()
     queue.add(Pair(x, y))
 
     while (queue.isNotEmpty()) {
         val (cx, cy) = queue.removeFirst()
-        val index = cy * width + cx
-        if (cx in 0 until width && cy in 0 until height && isSimilarColor(pixels[index], targetColor)) {
-            pixels[index] = replacementColor
-            queue.add(Pair(cx + 1, cy))
-            queue.add(Pair(cx - 1, cy))
-            queue.add(Pair(cx, cy + 1))
-            queue.add(Pair(cx, cy - 1))
+        if (cx in 0 until width && cy in 0 until height) {
+            val index = cy * width + cx
+            if (isSimilarColor(pixels[index], realTargetColor)) {
+                pixels[index] = replacementColor
+                queue.add(Pair(cx + 1, cy))
+                queue.add(Pair(cx - 1, cy))
+                queue.add(Pair(cx, cy + 1))
+                queue.add(Pair(cx, cy - 1))
+            }
         }
     }
 
     bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 }
+
 

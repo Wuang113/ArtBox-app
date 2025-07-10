@@ -18,6 +18,13 @@ class DrawViewModel : ViewModel() {
     var shapeType by mutableStateOf("Circle")
         private set
 
+    init {
+        // ✅ Màu nền canvas và màu Ring giống nhau
+        val ringColor = Color(0xFFF5F5F5) // ví dụ: xám nhạt
+        drawController.changeColor(ringColor)       // màu cho Ring
+        drawController.changeBgColor(ringColor)     // màu nền canvas
+    }
+
     fun changeTool(tool: DrawTool) {
         selectedTool = tool
     }
@@ -54,12 +61,12 @@ class DrawViewModel : ViewModel() {
         drawController.applyFilledBitmap(bitmap)
     }
 
-        fun getBitmap(): Bitmap {
-            return drawController.getCurrentBitmap()
-        }
-        fun clearCanvas() {
-            drawController.pathList.clear()
-            drawController.filledBitmap = null
-        }
-
+    fun getBitmap(): Bitmap {
+        return drawController.getCurrentBitmap()
     }
+
+    fun clearCanvas() {
+        drawController.pathList.clear()
+        drawController.filledBitmap = null
+    }
+}

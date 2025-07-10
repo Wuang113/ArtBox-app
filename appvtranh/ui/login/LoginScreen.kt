@@ -39,12 +39,7 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
-    var showPermissionDialog by remember { mutableStateOf(false) }
 
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-        Manifest.permission.READ_MEDIA_IMAGES
-    else
-        Manifest.permission.READ_EXTERNAL_STORAGE
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -57,9 +52,7 @@ fun LoginScreen(navController: NavController) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        showPermissionDialog = true
-    }
+
 
     val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
         .requestIdToken(context.getString(R.string.default_web_client_id))
@@ -223,26 +216,5 @@ fun LoginScreen(navController: NavController) {
                 }
             }
         }
-    }
-
-    if (showPermissionDialog) {
-        AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    showPermissionDialog = false
-                    permissionLauncher.launch(permission)
-                }) {
-                    Text("Có")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Không")
-                }
-            },
-            title = { Text("Cấp quyền truy cập ảnh") },
-            text = { Text("Bạn có muốn cấp quyền truy cập kho ảnh để lưu và mở hình vẽ không?") }
-        )
     }
 }

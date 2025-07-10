@@ -52,7 +52,7 @@ fun DrawBox(
     val canvasModifier = modifier
         .background(drawController.bgColor)
         .pointerInput(selectedTool, shapeType) {
-            if (selectedTool == DrawTool.Pen && !allowPen) {
+            if (selectedTool == DrawTool.Delete && !allowPen) {
                 if (drawController.pathList.isNotEmpty() || drawController.filledBitmap != null) {
                     showClearDialog = true
                     return@pointerInput
@@ -81,8 +81,8 @@ fun DrawBox(
                         if (offset.x in 0f..canvasSize.width && offset.y in 0f..canvasSize.height) {
                             when (selectedTool) {
                                 DrawTool.Brush -> drawController.insertNewPath(offset)
-                                DrawTool.Ring -> drawController.beginErase()
-                                DrawTool.Circle, DrawTool.Pen, DrawTool.Palette -> {} // Không làm gì cả
+                                DrawTool.Eraser -> drawController.beginErase()
+                                DrawTool.Circle, DrawTool.Delete, DrawTool.Palette -> {} // Không làm gì cả
                             }
                         }
                     },
@@ -92,8 +92,8 @@ fun DrawBox(
                         if (point.x in 0f..canvasSize.width && point.y in 0f..canvasSize.height) {
                             when (selectedTool) {
                                 DrawTool.Brush -> drawController.updateLatestPath(point)
-                                DrawTool.Ring -> drawController.applyEraseAt(point)
-                                DrawTool.Circle, DrawTool.Pen, DrawTool.Palette -> {}
+                                DrawTool.Eraser -> drawController.applyEraseAt(point)
+                                DrawTool.Circle, DrawTool.Delete, DrawTool.Palette -> {}
                             }
 
                         }
@@ -106,7 +106,7 @@ fun DrawBox(
                                 }
                             }
                         }
-                        if (selectedTool == DrawTool.Ring) {
+                        if (selectedTool == DrawTool.Eraser) {
                             drawController.endErase()
                         }
                         dragStart = null
@@ -195,7 +195,7 @@ fun DrawBox(
             )
         }
 
-        if (selectedTool == DrawTool.Ring && dragEnd != null) {
+        if (selectedTool == DrawTool.Eraser && dragEnd != null) {
             drawCircle(
                 color = Color.Gray.copy(alpha = 0.3f),
                 radius = drawController.eraserSize / 2f,

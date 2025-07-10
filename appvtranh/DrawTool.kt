@@ -3,8 +3,8 @@ package com.example.appvtranh
 enum class DrawTool {
     Brush,
     Circle,
-    Pen,
-    Ring,
+    Delete,
+    Eraser,
     Palette
 }
 

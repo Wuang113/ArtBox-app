@@ -1,9 +1,13 @@
 package com.example.appvtranh.ui.draw
 
 import android.Manifest
+import android.content.ContentValues
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,37 +47,24 @@ fun DrawingScreen(navController: NavController, path: String?) {
     val shapeType = viewModel.shapeType
 
     var showColorDialog by remember { mutableStateOf(false) }
-    var showSaveDialog by remember { mutableStateOf(false) }
     var showClearDialog by remember { mutableStateOf(false) }
     var showSidebar by remember { mutableStateOf(true) }
+    val showPermissionDeniedDialog = remember { mutableStateOf(false) }
+    val shouldSaveAfterPermission = remember { mutableStateOf(false) }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            if (!isGranted) {
-                Toast.makeText(context, "Bạn cần cấp quyền để lưu ảnh.", Toast.LENGTH_SHORT).show()
-            }
-        }
-    )
-
-    LaunchedEffect(Unit) {
-        permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-
-    LaunchedEffect(path) {
-        path?.let {
-            val file = File(Uri.decode(it))
-            if (file.exists()) {
-                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-                viewModel.loadBitmap(bitmap)
-            }
-        }
+    fun openAppSettings() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", context.packageName, null)
+        )
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
 
     fun saveToGallery() {
         val bitmap = viewModel.getBitmap()
         val fileName = "drawing_${System.currentTimeMillis()}.png"
-        val contentValues = android.content.ContentValues().apply {
+        val contentValues = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
             put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/DrawingApp")
@@ -83,6 +74,29 @@ fun DrawingScreen(navController: NavController, path: String?) {
         uri?.let {
             context.contentResolver.openOutputStream(it)?.use { out ->
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+            }
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (isGranted && shouldSaveAfterPermission.value) {
+                saveToGallery()
+                Toast.makeText(context, "Đã lưu vào thư viện", Toast.LENGTH_SHORT).show()
+            } else if (!isGranted) {
+                showPermissionDeniedDialog.value = true
+            }
+            shouldSaveAfterPermission.value = false
+        }
+    )
+
+    LaunchedEffect(path) {
+        path?.let {
+            val file = File(Uri.decode(it))
+            if (file.exists()) {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                viewModel.loadBitmap(bitmap)
             }
         }
     }
@@ -135,16 +149,16 @@ fun DrawingScreen(navController: NavController, path: String?) {
                 Spacer(modifier = Modifier.width(8.dp))
             }
 
-            if (selectedTool == Brush || selectedTool == Circle || selectedTool == Ring) {
+            if (selectedTool == Brush || selectedTool == Circle || selectedTool == Eraser) {
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = if (selectedTool == Ring) "Eraser Size" else "Width",
+                        text = if (selectedTool == Eraser) "Eraser Size" else "Width",
                         fontSize = 12.sp
                     )
                     Slider(
-                        value = if (selectedTool == Ring) drawController.eraserSize else drawController.strokeWidth,
+                        value = if (selectedTool == Eraser) drawController.eraserSize else drawController.strokeWidth,
                         onValueChange = {
-                            if (selectedTool == Ring) viewModel.changeEraserSize(it)
+                            if (selectedTool == Eraser) viewModel.changeEraserSize(it)
                             else viewModel.changeStrokeWidth(it)
                         },
                         valueRange = 1f..100f,
@@ -194,8 +208,8 @@ fun DrawingScreen(navController: NavController, path: String?) {
                     val tools = listOf(
                         Brush to Icons.Default.Brush,
                         Circle to Icons.Default.Circle,
-                        Pen to Icons.Default.Delete, // Pen là công cụ xoá toàn bộ
-                        Ring to painterResource(id = R.drawable.eraser),
+                        Delete to Icons.Default.Delete,
+                        Eraser to painterResource(id = R.drawable.eraser),
                         Palette to Icons.Default.Palette
                     )
 
@@ -212,17 +226,15 @@ fun DrawingScreen(navController: NavController, path: String?) {
                                 .padding(6.dp)
                                 .clickable {
                                     when (tool) {
-                                        Pen -> showClearDialog = true
+                                        Delete -> showClearDialog = true
                                         else -> {
-                                            viewModel.changeTool(tool) // 🟢 Đảm bảo dòng này luôn được gọi cho Ring
+                                            viewModel.changeTool(tool)
                                             if (tool in listOf(Palette, Brush, Circle)) {
                                                 showColorDialog = true
                                             }
                                         }
                                     }
-                                }
-
-                            ,
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             when (icon) {
@@ -268,7 +280,14 @@ fun DrawingScreen(navController: NavController, path: String?) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            IconButton(onClick = { showSaveDialog = true }) {
+            IconButton(onClick = {
+                shouldSaveAfterPermission.value = true
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+            }) {
                 Icon(Icons.Default.Download, contentDescription = "Save")
             }
 
@@ -298,37 +317,13 @@ fun DrawingScreen(navController: NavController, path: String?) {
         }
     }
 
-    // Save dialog
-    if (showSaveDialog) {
-        AlertDialog(
-            onDismissRequest = { showSaveDialog = false },
-            title = { Text("Lưu ảnh") },
-            text = { Text("Bạn có muốn lưu ảnh về thư viện không?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    saveToGallery()
-                    showSaveDialog = false
-                    Toast.makeText(context, "Đã lưu vào thư viện", Toast.LENGTH_SHORT).show()
-                }) {
-                    Text("Lưu")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showSaveDialog = false }) {
-                    Text("Hủy")
-                }
-            }
-        )
-    }
-
-    // Clear dialog (Pen tool)
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.clearCanvas()
-                    viewModel.changeTool(Pen)
+                    viewModel.changeTool(Delete)
                     showClearDialog = false
                 }) {
                     Text("Yes")
@@ -344,7 +339,6 @@ fun DrawingScreen(navController: NavController, path: String?) {
         )
     }
 
-    // Color picker
     if (showColorDialog) {
         AlertDialog(
             onDismissRequest = { showColorDialog = false },
@@ -374,6 +368,27 @@ fun DrawingScreen(navController: NavController, path: String?) {
                     }
                 }
             }
+        )
+    }
+
+    if (showPermissionDeniedDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDeniedDialog.value = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPermissionDeniedDialog.value = false
+                    openAppSettings()
+                }) {
+                    Text("Mở cài đặt")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDeniedDialog.value = false }) {
+                    Text("Hủy")
+                }
+            },
+            title = { Text("Cần cấp quyền") },
+            text = { Text("Ứng dụng cần quyền truy cập kho ảnh để lưu hình. Vui lòng cấp quyền trong Cài đặt.") }
         )
     }
 }

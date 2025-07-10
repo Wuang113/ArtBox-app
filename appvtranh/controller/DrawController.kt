@@ -36,7 +36,7 @@ class DrawController {
 
     var strokeWidth by mutableFloatStateOf(8f)
     var color by mutableStateOf(Color.Black)
-    var bgColor by mutableStateOf(Color.White)
+    var bgColor by mutableStateOf(Color(0xFFF5F5F5)) // hoặc bất kỳ màu nào bạn muốn Ring xóa
     var opacity by mutableFloatStateOf(1f)
     var eraserSize by mutableFloatStateOf(40f)
 
@@ -68,7 +68,7 @@ class DrawController {
             PathWrapper(
                 points = mutableStateListOf(start),
                 strokeColor = if (isErase) bgColor else color,
-                alpha = 1f,
+                alpha = if (isErase) 1f else opacity,
                 strokeWidth = if (isErase) eraserSize else strokeWidth
             )
         )
